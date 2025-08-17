@@ -15,10 +15,11 @@ It represents a complete workflow from database management to data-driven decisi
 
 ## Objectives
 
-1. **Set up the Library Management System Database**: Create and populate the database with tables for branches, employees, members, books, issued status, and return status.
-2. **CRUD Operations**: Perform Create, Read, Update, and Delete operations on the data.
-3. **CTAS (Create Table As Select)**: Utilize CTAS to create new tables based on query results.
-4. **Advanced SQL Queries**: Develop complex queries to analyze and retrieve specific data.
+1. **Database Integration: Connect Python with MySQL to store, retrieve, and manage datasets effectively
+2. **Data Cleaning & Preparation: Use SQL queries to clean, filter, and structure raw data for analysis.
+3. **CRUD Operations: Perform Create, Read, Update, and Delete operations on the database.
+4. **End-to-End Workflow: Demonstrate the complete process from database management in MySQL to generating insights
+5. **Business Analysis: Applying Advanced Queries Using MySQL 
 
 ## Project Structure
 
