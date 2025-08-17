@@ -228,7 +228,7 @@ LIMIT 10;
 
 ```
 
-**Loan repayment rate per loan **  
+**Loan repayment rate per loan**  
 
 ```sql
 
