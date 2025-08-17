@@ -26,8 +26,8 @@ It represents a complete workflow from database management to data-driven decisi
 ### 1. Database Setup
 ![ERD](https://raw.githubusercontent.com/rahmasaber123/Bank_Management_system/aa831f1c0e951438813f0295af3c9b83561327fd/SCHEMAA.jpeg)
 
-- **Database Creation**: Created a database named `lIBRARY_MANAGEMENT_SYSTEM`.
-- **Table Creation**: Created tables for branches, employees, members, books, issued status, and return status. Each table includes relevant columns and relationships.
+- **Database Creation**: Created a database named `BANK_MANAGEMENT_SYSTEM`.
+- **Table Creation**: Created tables for CUSTOMERS,EMPLOYEES,SERVICES,LOANS,BRANCHES,TRANSACTION.
 
 ```sql
 -- library mangment system project
