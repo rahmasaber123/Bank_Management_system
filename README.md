@@ -1,16 +1,16 @@
-# Bank_Management_system
-# LIBRARAY_MANAGMENT_SYSTEM 
+
+# BANK_MANAGMENT_SYSTEM 
 
 
 ## Project Overview
 
-**Project Title**: Library Management System  
+**Project Title**:Bank Management System  
 
-**Database**: `LIBRARY_MANAGEMENT_SYSTEM`
+**Database**: `Bank_DB`
 
 This project demonstrates the implementation of a Library Management System using SQL. It includes creating and managing tables, performing CRUD operations, and executing advanced SQL queries. The goal is to showcase skills in database design, manipulation, and querying.
 
-![Library_project](https://github.com/rahmasaber123/Bank_Management_system/blob/main/BANK.jpeg?raw=true)
+![BANK_PROJECT](https://github.com/rahmasaber123/Bank_Management_system/blob/main/BANK.jpeg?raw=true)
 
 ## Objectives
 
