@@ -7,8 +7,9 @@
 **Project Title**:Bank Management System  
 
 **Database**: `Bank_DB`
-
-This project demonstrates the implementation of a Library Management System using SQL. It includes creating and managing tables, performing CRUD operations, and executing advanced SQL queries. The goal is to showcase skills in database design, manipulation, and querying.
+This project demonstrates how to integrate MySQL with Python for managing and analyzing datasets.
+The data is cleaned and organized using SQL queries, then analyzed and visualized in Python to generate insights.
+It represents a complete workflow from database management to data-driven decision-making.
 
 ![BANK_PROJECT](https://github.com/rahmasaber123/Bank_Management_system/blob/main/BANK.jpeg?raw=true)
 
