@@ -80,133 +80,83 @@ CREATE TABLE Loans (
 - **Update**:Modified existing records in the database Using SQL
   
 
-**Task 1. Create a New Book Record**
--- "978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.')"
 
+**UPDATED SERVICES TABLE 
 ```sql
-INSERT INTO BOOKS
-VALUES ('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.');
-SELECT* FROM BOOKS;
+UPDATE Services
+SET ServiceName = CASE ServiceID
+    WHEN 1 THEN 'Loan Services'
+    WHEN 2 THEN 'Online Banking'
+    WHEN 3 THEN 'Saving Accounts'
+    WHEN 4 THEN 'Fixed Deposit'
+    WHEN 5 THEN 'Loan Services'
+    WHEN 6 THEN 'Online Banking'
+    WHEN 7 THEN 'Saving Accounts'
+    WHEN 8 THEN 'Fixed Deposit'
+    WHEN 9 THEN 'Loan Services'
+    WHEN 10 THEN 'Online Banking'
+END,
+Description = CASE ServiceID
+    WHEN 1 THEN 'Provides personal, home, and business loans.'
+    WHEN 2 THEN 'Secure internet-based banking services.'
+    WHEN 3 THEN 'Accounts for saving money with interest.'
+    WHEN 4 THEN 'Fixed-term deposits with higher interest rates.'
+    WHEN 5 THEN 'Provides personal, home, and business loans.'
+    WHEN 6 THEN 'Secure internet-based banking services.'
+    WHEN 7 THEN 'Accounts for saving money with interest.'
+    WHEN 8 THEN 'Fixed-term deposits with higher interest rates.'
+    WHEN 9 THEN 'Provides personal, home, and business loans.'
+    WHEN 10 THEN 'Secure internet-based banking services.'
+END; 
 
-```
-**Task 2: Update an Existing Member's Address**
-
-```sql
- UPDATE MEMBERS
- SET MEMBER_ADDRESS = '125 Oak St'
- WHERE MEMBER_ID =  'C103';
- SELECT* FROM MEMBERS;
-
-
-```
-
-**Task 3: Delete a Record from the Issued Status Table**
--- Objective: Delete the record with issued_id = 'IS121' from the issued_status table.
-
-```sql
-DELETE FROM ISSUED_STATUS
-WHERE issued_id = 'IS121';
-SELECT* FROM ISSUED_STATUS;
-
-```
-
-**Task 4: Retrieve All Books Issued by a Specific Employee**
--- Objective: Select all books issued by the employee with emp_id = 'E101'.
-```sql
-SELECT * FROM ISSUED_STATUS
-WHERE ISSUED_EMP_ID = 'E101';
 
 ```
 
-
-**Task 5: List Members Who Have Issued More Than One Book**
--- Objective: Use GROUP BY to find members who have issued more than one book.
-
+**CREATE TABLES AS SELECT TO HELP IN REPORTING PROCESS(SHOWING CUSTOMERS WHO PASSED THE LOAN PERIOD )
 ```sql
-SELECT ISSUED_MEMBER_ID ,COUNT(*)
-FROM ISSUED_STATUS
-GROUP BY 1
-HAVING COUNT(*)>1;
+CREATE TABLE overdue_loans AS
+SELECT 
+    l.LoanID, 
+    l.CustomerID, 
+    l.Amount AS loan_amount,
+    SUM(lp.AmountPaid) AS total_paid,
+    l.EndDate,
+    SUM(lp.AmountPaid) / l.Amount AS repayment_ratio
+FROM Loans l
+LEFT JOIN LoanPayments lp 
+    ON lp.LoanID = l.LoanID
+GROUP BY l.LoanID, l.CustomerID, l.Amount, l.EndDate
+HAVING 
+l.EndDate < CURRENT_DATE()       -- loan has already ended
+AND SUM(lp.AmountPaid) < 0.5 * l.Amount;  -- paid less than 50% of total loan
+
+SELECT * FROM overdue_loans;
+
+--
+
+
 
 ```
-
 ### 3. CTAS (Create Table As Select)
-
-- **Task 6: Create Summary Tables**: Used CTAS to generate new tables based on query results - each book and total book_issued_cnt**
-
+**CREATE TABLES AS SELECT TO HELP IN REPORTING PROCESS(SHOWINGREMAINING BALANCE IN CUSTOMERS ACCOUNT )
 ```sql
-CREATE TABLE TOTAL_BOOK_ISSUED AS
-SELECT  B.ISBN,BOOK_TITLE ,COUNT(IST.ISSUED_BOOK_ISBN) AS book_issued_cnt
-FROM ISSUED_STATUS IST
-JOIN BOOKS B
-ON B.ISBN = IST.ISSUED_BOOK_ISBN
-GROUP BY B.ISBN;
+CREATE TABLE loan_remaining_balance AS
+SELECT 
+    l.LoanID,
+    l.Amount AS original_amount,
+    SUM(lp.AmountPaid) AS total_paid,
+    (l.Amount - SUM(lp.AmountPaid)) AS remaining_balance
+FROM Loans l
+LEFT JOIN LoanPayments lp 
+    ON l.LoanID = lp.LoanID
+GROUP BY l.LoanID, l.Amount;
+SELECT * FROM loan_remaining_balance ;
 
-SELECT * FROM TOTAL_BOOK_ISSUED;
+
 
 ```
 
 
-### 4. Data Analysis & Findings
-
-The following SQL queries were used to address specific questions:
-
-Task 7. **Retrieve All Books in a Specific Category**:
-
-```sql
-SELECT * FROM BOOKS 
-WHERE CATEGORY ='Classic';
-
-```
-
-8. **Task 8: Find Total Rental Income by Category**:
-
-```sql
-SELECT CATEGORY ,SUM(B.RENTAL_PRICE) AS TOTAL_RENTAL_INCOME
-FROM BOOKS AS B
-JOIN ISSUED_STATUS IST
-ON B.ISBN = IST.ISSUED_BOOK_ISBN
-
-GROUP BY CATEGORY;
-
-```
-
-9. **List Members Who Registered in the Last 700 Days**:
-```sql
-SELECT* FROM MEMBERS 
-WHERE REG_DATE > CURRENT_DATE - INTERVAL '700 DAYS';
-
-```
-
-10. **List Employees with Their Branch Manager's Name and their branch details**:
-
-```sql
-SELECT E.*,B.BRANCH_ID,E1.EMP_NAME AS MANAGER_NAME 
-FROM EMPLOYEES E
-JOIN BRANCH B 
-ON B.BRANCH_ID  = E.BRANCH_ID
-JOIN EMPLOYEES E1
-ON E1.EMP_ID  = B.MANAGER_ID;
-
-```
-
-Task 11. **Create a Table of Books with Rental Price Above a Certain Threshold**:
-```sql
-CREATE TABLE EXPENSIVE_BOOKS AS
-SELECT * FROM BOOKS 
-WHERE RENTAL_PRICE >7;
-
-```
-
-Task 12: **Retrieve the List of Books Not Yet Returned**
-```sql
-SELECT ISSUED_BOOK_NAME,RS.ISSUED_ID 
-FROM RETURN_STATUS RS
-RIGHT JOIN ISSUED_STATUS IST 
-ON RS.ISSUED_ID = IST.ISSUED_ID
-WHERE RETURN_BOOK_ISBN IS NULL;
-
-```
 
 ## Advanced SQL Operations
 
@@ -215,20 +165,7 @@ Write a query to identify members who have overdue books (assume a 300-day retur
 
 ```sql
 
-SELECT M.MEMBER_ID,
-M.MEMBER_NAME,
-B.BOOK_TITLE, 
-CURRENT_DATE-IST.ISSUED_DATE AS OVER_DUE
-FROM ISSUED_STATUS IST
-  JOIN MEMBERS M 
-ON M.MEMBER_ID  = IST.ISSUED_MEMBER_ID
-  JOIN BOOKS B
-ON B.ISBN = IST.ISSUED_BOOK_ISBN
-  LEFT JOIN RETURN_STATUS RS
-ON RS.ISSUED_ID = IST.ISSUED_ID 
-   WHERE RS.RETURN_DATE IS NULL 
-   AND( CURRENT_DATE-ISSUED_DATE )>300
-;
+
 
 ```
 
@@ -239,52 +176,7 @@ Write a query to update the status of books in the books table to "Yes" when the
 
 ```sql
 
-CREATE OR REPLACE PROCEDURE RETURN_BOOKS_STATUS(P_RETURN_ID VARCHAR(15),P_ISSUED_ID VARCHAR(15),P_BOOK_QUALITY VARCHAR(15))
-LANGUAGE PLPGSQL
-AS $$
-DECLARE 
-V_ISSUED_ISBN VARCHAR(25);
-V_BOOK_NAME VARCHAR(75);
-BEGIN
-SELECT ISSUED_BOOK_ISBN,ISSUED_BOOK_NAME
-INTO V_ISSUED_ISBN,V_BOOK_NAME
-FROM ISSUED_STATUS
-WHERE ISSUED_ID=P_ISSUED_ID ;
 
-INSERT 
-  INTO RETURN_STATUS(RETURN_ID,ISSUED_ID,RETURN_DATE,BOOK_QUALITY)
-  VALUES(P_RETURN_ID,P_ISSUED_ID,CURRENT_DATE,P_BOOK_QUALITY);
-
-UPDATE BOOKS
-SET STATUS ='YES'
-WHERE ISBN = V_ISSUED_ISBN;
-
-RAISE NOTICE 'THANKS FOR RETURNING THE BOOK %',V_BOOK_NAME;
-  
-END;
-$$
-
-
-
--- Testing FUNCTION add_return_records
-
-issued_id = IS135
-ISBN = WHERE isbn = '978-0-307-58837-1'
-
-SELECT * FROM books
-WHERE isbn = '978-0-307-58837-1';
-
-SELECT * FROM issued_status
-WHERE issued_book_isbn = '978-0-307-58837-1';
-
-SELECT * FROM return_status
-WHERE issued_id = 'IS135';
-
--- calling function 
-CALL add_return_records('RS138', 'IS135', 'Good');
-
--- calling function 
-CALL add_return_records('RS148', 'IS140', 'Good');
 
 ```
 
@@ -296,23 +188,7 @@ Create a query that generates a performance report for each branch, showing the 
 
 ```sql
 
-CREATE TABLE BRANCH_REPORT AS
-SELECT
-E.EMP_ID,
-BC.MANAGER_ID ,
-  COUNT(RS.RETURN_ID) AS TOTAL_RETURN_BOOKS,
-  COUNT(IST.ISSUED_ID ) AS TOTAL_ISSUED_BOOKS
-  FROM ISSUED_STATUS IST
-  JOIN EMPLOYEES E 
-ON E.EMP_ID =IST.ISSUED_EMP_ID
-  JOIN BOOKS B
-ON B.ISBN =IST.ISSUED_BOOK_ISBN
-  JOIN BRANCH BC
-ON BC.BRANCH_ID =E.BRANCH_ID
-  LEFT JOIN RETURN_STATUS RS
-ON RS.ISSUED_ID =IST.ISSUED_ID
-  GROUP BY 1,2;
-SELECT* FROM BRANCH_REPORT;
+
 
 ```
 
@@ -320,12 +196,7 @@ SELECT* FROM BRANCH_REPORT;
 Use the CREATE TABLE AS (CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 20 months.
 
 ```sql
-CREATE TABLE LAST_20MONTH_CHECK AS 
-  SELECT * FROM MEMBERS WHERE MEMBER_ID IN(
-  SELECT DISTINCT ISSUED_MEMBER_ID FROM 
-ISSUED_STATUS
-WHERE ISSUED_DATE >= CURRENT_DATE - INTERVAL'20 MONTHS');
-SELECT* FROM LAST_20MONTH_CHECK;
+
 
 
 ```
@@ -466,22 +337,22 @@ GROUP BY 1,2;
 ## Reports
 
 - **Database Schema**: Detailed table structures and relationships.
-- **Data Analysis**: Insights into book categories, employee salaries, member registration trends, and issued books.
-- **Summary Reports**: Aggregated data on high-demand books and employee performance.
+- **Data Analysis**: Insights into SERVICES, LOANSPAYMENT, CUSTOMERS BEHAVIORS, and BRANCHES.
+- **Summary Reports**: Aggregated data on high-demand TRANSACTONS and LOANSPAYMENT performance.
 
 ## Conclusion
 
-This project demonstrates the application of SQL skills in creating and managing a library management system. It includes database setup, data manipulation, and advanced querying, providing a solid foundation for data management and analysis.
+This project demonstrates the application of SQL skills in creating and managing a library management system. It includes database setup, data manipulation Using Python , and advanced querying, providing a solid foundation for data management and analysis.
 
 ## How to Use
 
 1. **Clone the Repository**: Clone this repository to your local machine.
    ```sh
-   git clone https://github.com/rahmasaber123/LIBRARAY_MANAGMENT_SYSTEM.git
+   git clone 
    ```
 
-2. **Set Up the Database**: Execute the SQL scripts in the `database_setup.sql` file to create and populate the database.
-3. **Run the Queries**: Use the SQL queries in the `analysis_queries.sql` file to perform the analysis.
+2. **Set Up the Database**: Execute the SQL scripts in the `BANK_DB` file to create and populate the database.
+3. **Run the Queries**: Use the SQL queries in the `BUSINESS_ANALYSIS.SQL` file to perform the analysis.
 4. **Explore and Modify**: Customize the queries as needed to explore different aspects of the data or answer additional questions.
 
 ## Author - RAHMA SABER ABBAS 
