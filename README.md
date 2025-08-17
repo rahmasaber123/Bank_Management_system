@@ -160,180 +160,155 @@ SELECT * FROM loan_remaining_balance ;
 
 ## Advanced SQL Operations
 
-**Task 13: Identify Members with Overdue Books**  
-Write a query to identify members who have overdue books (assume a 300-day return period). Display the member's_id, member's name, book title, issue date, and days overdue.
-
-```sql
-
-
-
-```
-
-
-**Task 14: Update Book Status on Return**  
-Write a query to update the status of books in the books table to "Yes" when they are returned (based on entries in the return_status table).
+**Identify Loans Details**  
 
 
 ```sql
 
+-- PROCEDURES
+ DELIMITER $$
 
-
-```
-
-
-
-
-**Task 15: Branch Performance Report**  
-Create a query that generates a performance report for each branch, showing the number of books issued, the number of books returned, and the total revenue generated from book rentals.
-
-```sql
-
-
-
-```
-
-**Task 16: CTAS: Create a Table of Active Members**  
-Use the CREATE TABLE AS (CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 20 months.
-
-```sql
-
-
-
-```
-
-
-**Task 17: Find Employees with the Most Book Issues Processed**  
-Write a query to find the top 3 employees who have processed the most book issues. Display the employee name, number of books processed, and their branch.
-
-```sql
-SELECT EMP_NAME,B.*,COUNT(IST.ISSUED_ID) AS NUM_BOOK_ISSUED
-FROM ISSUED_STATUS IST
-   JOIN
-   EMPLOYEES E
-ON E.EMP_ID=IST.ISSUED_EMP_ID
-  JOIN BRANCH B
-ON B.BRANCH_ID = E.BRANCH_ID
-  GROUP BY 1,2
-ORDER BY COUNT(IST.ISSUED_ID)
-   LIMIT 3;
-
-```
-
-**Task 18: Identify Members Issuing High-Risk Books**  
-Write a query to identify members who have issued books more than twice with the status "damaged" in the books table. Display the member name, book title, and the number of times they've issued damaged books.    
-```sql
-SELECT M.MEMBER_NAME, 
-  B.BOOK_TITLE ,
-COUNT(IST.ISSUED_BOOK_ISBN) AS HIGH_RISK_BOOKS
-FROM ISSUED_STATUS IST
-   LEFT JOIN RETURN_STATUS RS
-ON IST.ISSUED_ID =RS.ISSUED_ID 
-   JOIN MEMBERS M
-ON M.MEMBER_ID=ISSUED_MEMBER_ID
-   JOIN BOOKS B 
-ON B.ISBN = IST.ISSUED_BOOK_ISBN 
-   WHERE RS.BOOK_QUALITY ='Damaged'
-GROUP BY 1,2
-   HAVING count(RS.BOOK_QUALITY)>2;
-
-
-```
-
-**Task 19: Stored Procedure**
-Objective:
-Create a stored procedure to manage the status of books in a library system.
-Description:
-Write a stored procedure that updates the status of a book in the library based on its issuance. The procedure should function as follows:
-The stored procedure should take the book_id as an input parameter.
-The procedure should first check if the book is available (status = 'yes').
-If the book is available, it should be issued, and the status in the books table should be updated to 'no'.
-If the book is not available (status = 'no'), the procedure should return an error message indicating that the book is currently not available.
-
-```sql
-
-CREATE OR REPLACE PROCEDURE issue_book(p_issued_id VARCHAR(10), p_issued_member_id VARCHAR(30), p_issued_book_isbn VARCHAR(30), p_issued_emp_id VARCHAR(10))
-LANGUAGE plpgsql
-AS $$
-
-DECLARE
--- all the variabable
-    v_status VARCHAR(10);
-
+CREATE PROCEDURE GetLoanDetails(IN loan_id INT)
 BEGIN
--- all the code
-    -- checking if book is available 'yes'
-    SELECT 
-        status 
-        INTO
-        v_status
-    FROM books
-    WHERE isbn = p_issued_book_isbn;
+    SELECT l.LoanID, l.Amount, SUM(lp.AmountPaid) AS TotalPaid
+    FROM loans l
+    LEFT JOIN loanpayments lp ON l.LoanID = lp.LoanID
+    WHERE l.LoanID = loan_id
+    GROUP BY l.LoanID, l.Amount;
+END $$
 
-    IF v_status = 'yes' THEN
-
-        INSERT INTO issued_status(issued_id, issued_member_id, issued_date, issued_book_isbn, issued_emp_id)
-        VALUES
-        (p_issued_id, p_issued_member_id, CURRENT_DATE, p_issued_book_isbn, p_issued_emp_id);
-
-        UPDATE books
-            SET status = 'no'
-        WHERE isbn = p_issued_book_isbn;
-
-        RAISE NOTICE 'Book records added successfully for book isbn : %', p_issued_book_isbn;
+DELIMITER ;
+CALL GetLoanDetails(114);
 
 
-    ELSE
-        RAISE NOTICE 'Sorry to inform you the book you have requested is unavailable book_isbn: %', p_issued_book_isbn;
-    END IF;
-END;
-$$
-
--- Testing The function
-SELECT * FROM books;
--- "978-0-553-29698-2" -- yes
--- "978-0-375-41398-8" -- no
-SELECT * FROM issued_status;
-
-CALL issue_book('IS155', 'C108', '978-0-553-29698-2', 'E104');
-CALL issue_book('IS156', 'C108', '978-0-375-41398-8', 'E104');
-
-SELECT * FROM books
-WHERE isbn = '978-0-375-41398-8'
 
 ```
 
 
+**Identify Total Payment Trasnact In Term Of Loans**  
 
-**Task 20: Create Table As Select (CTAS)**
-Objective: Create a CTAS (Create Table As Select) query to identify overdue books and calculate fines.
-
-Description: Write a CTAS query to create a new table that lists each member and the books they have issued but not returned within 30 days. The table should include:
-    The number of overdue books.
-    The total fines, with each day's fine calculated at $0.50.
-    The number of books issued by each member.
-    The resulting table should show:
-    Member ID
-    Number of overdue books
-    Total fines
 
 ```sql
 
- SELECT  M.member_id, 
-	M.member_name, 
-	COUNT(member_id) AS books_overdue,
-	SUM((CURRENT_DATE - (iST.issued_date + INTERVAL '30 Days')::DATE) * 0.50) AS total_fines	--::DATE MAKES SURE IT RETURNS DATE TYPE
-FROM members AS M
-JOIN issued_status AS iST
-	ON iST.issued_member_id = M.member_id
-LEFT JOIN return_status AS RS
-	ON RS.issued_id = IST.issued_id
-JOIN books AS b
-	ON b.isbn = iST.issued_book_isbn
-WHERE return_date IS NULL 
-	AND CURRENT_DATE - (iST.issued_date + INTERVAL '30 Days')::DATE > 0
-GROUP BY 1,2;
+DELIMITER $$
+
+CREATE PROCEDURE GetTotalPayment(IN loan_id INT)
+BEGIN
+    SELECT SUM(lp.AmountPaid) / l.Amount AS PaymentRatio
+    FROM loanpayments lp
+    JOIN loans l ON lp.LoanID = l.LoanID
+    WHERE l.LoanID = loan_id
+    GROUP BY l.LoanID,l.Amount;
+END $$
+
+DELIMITER ;
+ CALL GetTotalPayment(5);
+
 
 ```
+
+
+
+
+**Average transaction amount per account**  
+
+SELECT t.AccountID,
+       AVG(t.Amount) AS avg_txn_amount,
+       COUNT(*) AS txn_count
+FROM Transactions t
+GROUP BY t.AccountID
+HAVING txn_count > 5
+ORDER BY avg_txn_amount DESC
+LIMIT 10;
+
+
+```sql
+
+
+
+```
+
+**Loan repayment rate per loan **  
+
+```sql
+
+
+SELECT l.LoanID,
+       l.CustomerID,
+       l.Amount AS loan_amount,
+       SUM(lp.AmountPaid) AS total_paid,
+       CASE WHEN l.Amount > 0
+     THEN SUM(lp.AmountPaid) / l.Amount -- This calculates how much of the loan has been paid as a ratio
+     ELSE NULL
+END AS repayment_ratio
+FROM Loans l
+LEFT JOIN LoanPayments lp ON lp.LoanID = l.LoanID
+GROUP BY l.LoanID
+ORDER BY repayment_ratio ASC
+LIMIT 20;
+
+
+```
+
+
+**customers with >= 2 services**  
+
+
+```sql
+
+
+SELECT cs.CustomerID, c.FullName, COUNT(*) AS num_services
+FROM Customer_Services cs
+JOIN Customers c ON c.CustomerID = cs.CustomerID
+GROUP BY cs.CustomerID
+HAVING num_services >= 2
+ORDER BY num_services DESC
+LIMIT 20;
+
+
+```
+
+**Total balances attributable to each branch**  
+  
+```sql
+
+WITH branch_customers AS (
+  SELECT DISTINCT e.BranchID, ec.CustomerID
+  FROM Employees_Customers ec
+  JOIN Employees e ON ec.EmployeeID = e.EmployeeID
+)
+SELECT b.BranchID, b.BranchName,
+       SUM(a.Balance) AS total_balance
+FROM Branches b
+JOIN branch_customers bc ON bc.BranchID = b.BranchID
+JOIN Accounts a ON a.CustomerID = bc.CustomerID
+GROUP BY b.BranchID
+ORDER BY total_balance DESC;
+
+
+
+```
+
+**Flag accounts with suspicious same-day activity**
+
+
+```sql
+
+
+SELECT AccountID,
+       DATE(TransactionDate) AS tx_date,
+       COUNT(*) AS tx_count,
+       SUM(Amount) AS total_amount
+FROM Transactions
+GROUP BY AccountID, DATE(TransactionDate)
+HAVING tx_count > 10 OR total_amount > 10000; 
+
+
+```
+
+
+
+
 ## Reports
 
 - **Database Schema**: Detailed table structures and relationships.
