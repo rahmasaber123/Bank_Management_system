@@ -24,7 +24,7 @@ It represents a complete workflow from database management to data-driven decisi
 ## Project Structure
 
 ### 1. Database Setup
-![ERD](https://github.com/rahmasaber123/LIBRARAY_MANAGMENT_SYSTEM/blob/87feb57fa51d8b8bb752379168c2668fef77c9af/LIBRARY_ERD.jpeg)
+![ERD](https://raw.githubusercontent.com/rahmasaber123/Bank_Management_system/aa831f1c0e951438813f0295af3c9b83561327fd/SCHEMAA.jpeg)
 
 - **Database Creation**: Created a database named `lIBRARY_MANAGEMENT_SYSTEM`.
 - **Table Creation**: Created tables for branches, employees, members, books, issued status, and return status. Each table includes relevant columns and relationships.
