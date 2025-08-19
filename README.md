@@ -211,7 +211,7 @@ DELIMITER ;
 
 
 **Average transaction amount per account**  
-
+```sql
 SELECT t.AccountID,
        AVG(t.Amount) AS avg_txn_amount,
        COUNT(*) AS txn_count
@@ -221,12 +221,9 @@ HAVING txn_count > 5
 ORDER BY avg_txn_amount DESC
 LIMIT 10;
 
-
-```sql
-
-
-
 ```
+
+
 
 **Loan repayment rate per loan**  
 
